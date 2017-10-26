@@ -4,10 +4,11 @@ import tensorflow as tf
 
 
 class FullyConvNN():
-    def __init__(self):
+    def __init__(self, keep_prob):
         """
         Build the model.
         """
+        self.keep_prob = keep_prob
         self.build()
 
     def build(self, x):
@@ -45,12 +46,14 @@ class FullyConvNN():
         self.conv5_2 = tf.layers.conv2d(
             self.conv5_1, 512, [3, 3], activation=tf.nn.relu)
         self.pool5 = tf.layers.max_pooling2d(self.conv5_2, [2, 2], strides=2)
-        # fc1 layer
-        self.fc1 = tf.layers.dense(self.pool5, 4096)
-        # fc2 layer
-        self.fc2 = tf.layers.dense(self.fc1, 4096)
         # fc6 layer
         self.fc6 = tf.layers.dense(self.pool5, 4096)
         # fc7 layer
         self.fc7 = tf.layers.dense(self.fc6, 4096)
         # refinement layer1
+        self.upconv1 = tf.layers.conv2d_transpose(
+            self.fc7, 4096, [4, 4], strides=2)
+        self.pool4_conv = tf.layers.conv2d(self.pool4, 512, [1, 1])
+        self.refine1 = tf.add(
+            tf.nn.relu(self.upconv1),
+            tf.nn.dropout(self.pool4_conv, keep_prob=self.keep_prob))
