@@ -49,3 +49,8 @@ class FullyConvNN():
         self.fc1 = tf.layers.dense(self.pool5, 4096)
         # fc2 layer
         self.fc2 = tf.layers.dense(self.fc1, 4096)
+        # fc6 layer
+        self.fc6 = tf.layers.dense(self.pool5, 4096)
+        # fc7 layer
+        self.fc7 = tf.layers.dense(self.fc6, 4096)
+        # refinement layer1
