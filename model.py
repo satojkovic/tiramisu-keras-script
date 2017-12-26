@@ -104,15 +104,15 @@ def params():
     return params
 
 
-def fcn(data, model_params, keep_prob):
+def fcn(x, model_params, keep_prob):
     # Padding
     # rank of 'data' is 4
     PAD100 = tf.constant([[0, 0], [100, 100], [100, 100], [0, 0]])
     # Layer1
-    data_pad = tf.pad(data, PAD100, 'CONSTANT')
+    x_pad = tf.pad(x, PAD100, 'CONSTANT')
     conv1_1 = tf.nn.relu(
         tf.nn.conv2d(
-            data_pad, model_params['conv1_1'], [1, 1, 1, 1], padding='VALID') +
+            x_pad, model_params['conv1_1'], [1, 1, 1, 1], padding='VALID') +
         model_params['bconv1_1'])
     conv1_2 = tf.nn.relu(
         tf.nn.conv2d(
