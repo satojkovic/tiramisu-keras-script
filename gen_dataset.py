@@ -44,6 +44,10 @@ def get_n_obj(mat_data):
     return mat_data['anno'][0][0][1].shape[1]
 
 
+def get_n_parts(person_mat_data):
+    return person_mat_data[0][3].shape[1]
+
+
 def get_obj_class(mat_data, i):
     return mat_data['anno'][0][0][1][:, i][0][0]
 
@@ -56,6 +60,10 @@ def get_person_mat_data(mats):
             if get_obj_class(mat_data, i) == 'person':
                 yield mat_data['anno'][0][0][0][0], mat_data['anno'][0][0][
                     1][:, i]
+
+
+def get_mask_image(person_mat_data, j):
+    return person_mat_data[0][3][:, j][1]
 
 
 def main():
@@ -75,6 +83,11 @@ def main():
         img = cv2.resize(img, (model.IMG_WIDTH, model.IMG_HEIGHT))
         input_images.append(img)
 
+        n_parts = get_n_parts(person_mat_data)
+        for j in range(n_parts):
+            mask_image = get_mask_image(person_mat_data, j)
+            output_mask_images.append(mask_image)
+
     # split input images into train and test set
     n_images = len(input_images)
     all_idxes = np.arange(n_images)
@@ -83,15 +96,19 @@ def main():
     test_idxes = np.asarray(sorted(set(all_idxes) - set(train_idxes)))
     train_images, test_images = np.asarray(input_images)[
         train_idxes], np.asarray(input_images)[test_idxes]
+    train_masks, test_masks = np.asarray(output_mask_images)[
+        train_idxes], np.asarray(output_mask_images)[test_idxes]
 
     # Output stats
     print('All images:', n_images)
-    print('Train images:', train_images.shape)
-    print('Test images:', test_images.shape)
+    print('Train images, Train masks:', train_images.shape, train_masks.shape)
+    print('Test images, Test masks:', test_images.shape, test_masks.shape)
 
     # save as pickle
     joblib.dump(train_images, 'train_images.pickle', compress=5)
     joblib.dump(test_images, 'test_images.pickle', compress=5)
+    joblib.dump(train_masks, 'train_masks.pickle', compress=5)
+    joblib.dump(test_masks, 'test_masks.pickle', compress=5)
 
 
 if __name__ == '__main__':
