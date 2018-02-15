@@ -30,6 +30,12 @@ KERNEL_SIZE3 = 3
 KERNEL_SIZE7 = 7
 KERNEL_SIZE1 = 1
 
+N_parts = 24
+
+IMG_HEIGHT = 500
+IMG_WIDTH = 500
+IMG_CH = 3
+
 
 def weight_variable(shape):
     return tf.Variable(tf.truncated_normal(shape, stddev=0.1))
@@ -89,17 +95,17 @@ def params():
 
     # score_fr
     params['score_fr'] = weight_variable(
-        [KERNEL_SIZE1, KERNEL_SIZE1, 4096, 21])
-    params['bscore_fr'] = bias_variable([21])
+        [KERNEL_SIZE1, KERNEL_SIZE1, 4096, N_parts])
+    params['bscore_fr'] = bias_variable([N_parts])
 
     # score2
-    params['bscore2'] = bias_variable([21])
+    params['bscore2'] = bias_variable([N_parts])
 
     # score4
-    params['bscore4'] = bias_variable([21])
+    params['bscore4'] = bias_variable([N_parts])
 
     # upsample
-    params['bupsample'] = bias_variable([21])
+    params['bupsample'] = bias_variable([N_parts])
 
     return params
 
@@ -200,21 +206,30 @@ def fcn(x, model_params, keep_prob):
     # score2
     score2 = tf.nn.relu(
         tf.layers.conv2d_transpose(
-            score_fr, 21, kernel_size=(4, 4), strides=(2, 2), padding='VALID')
-        + model_params('bscore2'))
+            score_fr,
+            N_parts,
+            kernel_size=(4, 4),
+            strides=(2, 2),
+            padding='VALID') + model_params('bscore2'))
 
     # Not to use: score_pool4, crop_pool4, fuse_1
 
     # score4
     score4 = tf.nn.relu(
         tf.layers.conv2d_transpose(
-            score2, 21, kernel_size=(4, 4), strides=(2, 2), padding='VALID') +
-        model_params['bscore4'])
+            score2,
+            N_parts,
+            kernel_size=(4, 4),
+            strides=(2, 2),
+            padding='VALID') + model_params['bscore4'])
 
-    # upsample (= 500x500x21)
+    # upsample (= 500x500xN_parts)
     upsample = tf.nn.relu(
         tf.layers.conv2d_transpose(
-            score4, 21, kernel_size=(17, 17), strides=(7, 7), padding='VALID')
-        + model_params['bupsample'])
+            score4,
+            N_parts,
+            kernel_size=(17, 17),
+            strides=(7, 7),
+            padding='VALID') + model_params['bupsample'])
 
     return upsample
