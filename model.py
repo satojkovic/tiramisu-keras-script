@@ -30,7 +30,8 @@ KERNEL_SIZE3 = 3
 KERNEL_SIZE7 = 7
 KERNEL_SIZE1 = 1
 
-N_parts = 24
+N_parts = 24 + 1  # Number of parts + background
+INDEX_BG_CLASS = N_parts - 1
 
 IMG_HEIGHT = 500
 IMG_WIDTH = 500

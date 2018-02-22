@@ -63,7 +63,15 @@ def get_person_mat_data(mats):
 
 
 def get_mask_image(person_mat_data, j):
-    return person_mat_data[0][3][:, j][1]
+    return mask_with_index(j, person_mat_data[0][3][:, j][0][1])
+
+
+def mask_with_index(j, mask_image):
+    # replace 0 with an index of background
+    np.place(mask_image, mask_image == 0, model.INDEX_BG_CLASS)
+    # replace 1 with an index of each parts
+    np.place(mask_image, mask_image == 1, j)
+    return mask_image
 
 
 def main():
