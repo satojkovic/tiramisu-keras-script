@@ -31,8 +31,8 @@ def relu(x):
     return tf.nn.relu(x)
 
 
-def dropout(x, p):
-    return tf.nn.dropout(x, keep_prob=p) if p else x
+def dropout(x, keep_prob):
+    return tf.nn.dropout(x, keep_prob=keep_prob) if keep_prob else x
 
 
 def batch_norm(x):
@@ -45,3 +45,46 @@ def relu_batch_norm(x):
 
 def concat(xs):
     return tf.concat(xs, axis=-1)
+
+
+def conv(x, nb_filter, ksize, scale, keep_prob, stride=1):
+    x = tf.layers.conv2d(
+        x,
+        nb_filter,
+        ksize,
+        strides=(stride, stride),
+        padding='SAME',
+        kernel_initializer=tf.contrib.layers.xavier_initializer(),
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(scale))
+    return dropout(x, keep_prob)
+
+
+def conv_relu_batch_norm(x, nb_filter, ksize=3, scale=0, keep_prob=0,
+                         stride=1):
+    return conv(relu_batch_norm(x), nb_filter, ksize, scale, keep_prob, stride)
+
+
+def dense_block(n_layers, x, growth_rate, keep_prob, scale):
+    added = []
+    for i in range(n_layers):
+        b = conv_relu_batch_norm(x, growth_rate, keep_prob, scale)
+        x = concat([x, b])
+        added.append(x)
+    return x, added
+
+
+def create_tiramisu(nb_classes,
+                    img_input,
+                    nb_dense_block=6,
+                    growth_rate=16,
+                    nb_filter=48,
+                    nb_layers_per_block=5,
+                    keep_prob=None,
+                    scale=0):
+    if type(nb_layers_per_block) is list or type(nb_layers_per_block) is tuple:
+        nb_layers = list(nb_layers_per_block)
+    else:
+        nb_layers = [nb_layers_per_block] * nb_dense_block
+
+    x = conv(img_input, nb_filter, 3, scale, 0)
+    return x
