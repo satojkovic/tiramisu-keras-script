@@ -73,6 +73,16 @@ def dense_block(n_layers, x, growth_rate, keep_prob, scale):
     return x, added
 
 
+def transition_down(x, keep_prob, scale):
+    return conv_relu_batch_norm(
+        x,
+        x.get_shape().as_list(),
+        1,
+        scale=scale,
+        keep_prob=keep_prob,
+        stride=2)
+
+
 def create_tiramisu(nb_classes,
                     img_input,
                     nb_dense_block=6,
