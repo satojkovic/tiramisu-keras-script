@@ -64,10 +64,11 @@ def conv_relu_batch_norm(x, nb_filter, ksize=3, scale=0, keep_prob=0,
     return conv(relu_batch_norm(x), nb_filter, ksize, scale, keep_prob, stride)
 
 
-def dense_block(n_layers, x, growth_rate, keep_prob, scale):
+def dense_block(nb_layers, x, growth_rate, keep_prob, scale):
     added = []
-    for i in range(n_layers):
-        b = conv_relu_batch_norm(x, growth_rate, keep_prob, scale)
+    for i in range(nb_layers):
+        b = conv_relu_batch_norm(
+            x, growth_rate, keep_prob=keep_prob, scale=scale)
         x = concat([x, b])
         added.append(x)
     return x, added
@@ -76,11 +77,20 @@ def dense_block(n_layers, x, growth_rate, keep_prob, scale):
 def transition_down(x, keep_prob, scale):
     return conv_relu_batch_norm(
         x,
-        x.get_shape().as_list(),
+        x.get_shape().as_list()[-1],
         1,
         scale=scale,
         keep_prob=keep_prob,
         stride=2)
+
+
+def down_path(x, nb_layers, growth_rate, keep_prob, scale):
+    skips = []
+    for i, nb_layer in enumerate(nb_layers):
+        x, added = dense_block(nb_layer, x, growth_rate, keep_prob, scale)
+        skips.append(x)
+        x = transition_down(x, keep_prob, scale)
+    return skips, added
 
 
 def create_tiramisu(nb_classes,
@@ -97,4 +107,5 @@ def create_tiramisu(nb_classes,
         nb_layers = [nb_layers_per_block] * nb_dense_block
 
     x = conv(img_input, nb_filter, 3, scale, 0)
-    return x
+    skips, added = down_path(x, nb_layers, growth_rate, keep_prob, scale)
+    return skips
