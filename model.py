@@ -70,7 +70,7 @@ def dense_block(nb_layers, x, growth_rate, keep_prob, scale):
         b = conv_relu_batch_norm(
             x, growth_rate, keep_prob=keep_prob, scale=scale)
         x = concat([x, b])
-        added.append(x)
+        added.append(b)
     return x, added
 
 
@@ -93,6 +93,25 @@ def down_path(x, nb_layers, growth_rate, keep_prob, scale):
     return skips, added
 
 
+def up_path(added, skips, nb_layers, growth_rate, keep_prob, scale):
+    for i, nb_layer in enumerate(nb_layers):
+        x = transition_up(added, scale)
+        x = concat([x, skips[i]])
+        x, added = dense_block(nb_layer, x, growth_rate, keep_prob, scale)
+    return x
+
+
+def transition_up(added, scale):
+    x = concat(added)
+    _, row, col, ch = x.get_shape().as_list()
+    return tf.layers.conv2d_transpose(
+        x, ch, (row * 2, col * 2), strides=(2, 2), padding='SAME')
+
+
+def reverse(a):
+    return list(reversed(a))
+
+
 def create_tiramisu(nb_classes,
                     img_input,
                     nb_dense_block=6,
@@ -108,4 +127,10 @@ def create_tiramisu(nb_classes,
 
     x = conv(img_input, nb_filter, 3, scale, 0)
     skips, added = down_path(x, nb_layers, growth_rate, keep_prob, scale)
-    return skips
+    x = up_path(added,
+                reverse(skips[:-1]),
+                reverse(nb_layers[:-1]), growth_rate, keep_prob, scale)
+    x = conv(x, nb_classes, 1, scale, 0)
+    _, row, col, f = x.get_shape().as_list()
+    x = tf.reshape(x, [-1, nb_classes])
+    return tf.nn.softmax(x)
