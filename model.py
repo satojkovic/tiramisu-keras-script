@@ -105,7 +105,12 @@ def transition_up(added, scale):
     x = concat(added)
     _, row, col, ch = x.get_shape().as_list()
     return tf.layers.conv2d_transpose(
-        x, ch, (row * 2, col * 2), strides=(2, 2), padding='SAME')
+        x,
+        ch, (row * 2, col * 2),
+        strides=(2, 2),
+        padding='SAME',
+        kernel_initializer=tf.contrib.layers.xavier_initializer(),
+        kernel_regularizer=tf.contrib.layers.l2_regularizer(scale))
 
 
 def reverse(a):
@@ -133,4 +138,4 @@ def create_tiramisu(nb_classes,
     x = conv(x, nb_classes, 1, scale, 0)
     _, row, col, f = x.get_shape().as_list()
     x = tf.reshape(x, [-1, nb_classes])
-    return tf.nn.softmax(x)
+    return x
