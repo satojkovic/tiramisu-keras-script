@@ -84,6 +84,16 @@ def main():
     # standardize values of image data
     imgs = standardize(imgs)
 
+    # Split dataset
+    n_data = len(imgs)
+    n_trn_imgs = int(0.7 * n_data)
+    trn_imgs = imgs[:n_trn_imgs]
+    trn_labels = labels_int[:n_trn_imgs]
+    test_imgs = imgs[n_trn_imgs:]
+    test_labels = labels_int[n_trn_imgs:]
+    print('Training data:', trn_imgs.shape, trn_labels.shape)
+    print('Test data:', test_imgs.shape, test_labels.shape)
+
     # input image: [batch_size, image height, image width, image channel]
     x = tf.placeholder(tf.float32, shape=(None, 224, 224, 3))
     # output labels: [batch_size, image height * image width]
