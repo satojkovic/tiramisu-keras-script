@@ -36,6 +36,18 @@ def parse_label_colors(fn):
     return list(label_codes), list(label_names)
 
 
+def conv_one_label(params, i):
+    (labels, code2id, failed_code, row, col) = params
+    res = np.zeros((row, col), 'uint8')
+    for j in range(row):
+        for k in range(col):
+            try:
+                res[j, k] = code2id[tuple(labels[i, j, k])]
+            except:
+                res[j, k] = failed_code
+    return res
+
+
 def conv_all_labels(labels, code2id, failed_code, n, row, col):
     res = np.zeros((n, row, col), 'uint8')
     for i in range(n):
@@ -46,6 +58,14 @@ def conv_all_labels(labels, code2id, failed_code, n, row, col):
                 except:
                     res[i, j, k] = failed_code
     return res
+
+
+def conv_all_labels_multi(labels, code2id, failed_code, n, row, col):
+    with ProcessPoolExecutor(max_workers=8) as ex:
+        params = map(lambda _: (labels, code2id, failed_code, row, col),
+                     range(n))
+        results = np.stack(ex.map(conv_one_label, params, range(n)))
+    return results
 
 
 def main():
@@ -75,6 +95,7 @@ def main():
     label_names.append('unk')
     labels_int = conv_all_labels(labels, code2id, failed_code, imgs.shape[0],
                                  imgs.shape[1], imgs.shape[2])
+    labels_int[labels_int == failed_code] = 0
     save_array(os.path.join(DATASET_ROOT, 'results/labels_int.bc'), labels_int)
 
 
