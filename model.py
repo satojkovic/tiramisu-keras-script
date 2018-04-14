@@ -135,7 +135,7 @@ def create_tiramisu(nb_classes,
     x = up_path(added,
                 reverse(skips[:-1]),
                 reverse(nb_layers[:-1]), growth_rate, keep_prob, scale)
-    x = conv(x, nb_classes, 1, scale, 0)
-    _, row, col, f = x.get_shape().as_list()
-    x = tf.reshape(x, [-1, nb_classes])
-    return x
+    x_pred = conv(x, nb_classes, 1, scale, 0)
+    shape = x_pred.get_shape().as_list()
+    x = tf.reshape(x_pred, [-1, nb_classes])
+    return x, shape, x_pred
