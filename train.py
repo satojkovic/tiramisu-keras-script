@@ -137,7 +137,7 @@ def main():
                 feed_dict = {x: trn_img, y: trn_label}
                 l = sess.run([loss], feed_dict=feed_dict)
                 print('Epoch {}/{}'.format(epoch, n_epoch))
-                print('loss: {:.6f}'.format(l))
+                print('loss: {}'.format(l))
 
         # save the trained model
         save_dir = 'models'
