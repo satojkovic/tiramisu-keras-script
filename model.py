@@ -23,20 +23,21 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-
-import tensorflow as tf
+from keras.layers import BatchNormalization
+from keras.layers import Activation, Dropout
+from keras.layers import concatenate
 
 
 def relu(x):
-    return tf.nn.relu(x)
+    return Activation('relu')(x)
 
 
 def dropout(x, keep_prob):
-    return tf.nn.dropout(x, keep_prob=keep_prob) if keep_prob else x
+    return Dropout(keep_prob)(x) if keep_prob else x
 
 
 def batch_norm(x):
-    return tf.layers.batch_normalization(x, axis=-1)
+    return BatchNormalization(axis=-1)(x)
 
 
 def relu_batch_norm(x):
@@ -44,7 +45,7 @@ def relu_batch_norm(x):
 
 
 def concat(xs):
-    return tf.concat(xs, axis=-1)
+    return concatenate(xs, axis=-1)
 
 
 def conv(x, nb_filter, ksize, scale, keep_prob, stride=1):
