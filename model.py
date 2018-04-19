@@ -23,9 +23,10 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-from keras.layers import BatchNormalization
+from keras.layers import BatchNormalization, Conv2DTranspose, Conv2D
 from keras.layers import Activation, Dropout
-from keras.layers import concatenate
+from keras.layers import concatenate, Reshape
+from keras.regularizers import l2
 
 
 def relu(x):
@@ -49,14 +50,13 @@ def concat(xs):
 
 
 def conv(x, nb_filter, ksize, scale, keep_prob, stride=1):
-    x = tf.layers.conv2d(
-        x,
+    x = Conv2D(
         nb_filter,
         ksize,
+        kernel_initializer='he_uniform',
+        padding='same',
         strides=(stride, stride),
-        padding='SAME',
-        kernel_initializer=tf.contrib.layers.xavier_initializer(),
-        kernel_regularizer=tf.contrib.layers.l2_regularizer(scale))
+        kernel_regularizer=l2(scale))(x)
     return dropout(x, keep_prob)
 
 
@@ -79,7 +79,7 @@ def transition_down(x, keep_prob, scale):
     return conv_relu_batch_norm(
         x,
         x.get_shape().as_list()[-1],
-        1,
+        ksize=1,
         scale=scale,
         keep_prob=keep_prob,
         stride=2)
@@ -105,13 +105,13 @@ def up_path(added, skips, nb_layers, growth_rate, keep_prob, scale):
 def transition_up(added, scale):
     x = concat(added)
     _, row, col, ch = x.get_shape().as_list()
-    return tf.layers.conv2d_transpose(
-        x,
-        ch, (row * 2, col * 2),
+    return Conv2DTranspose(
+        ch,
+        3,
+        kernel_initializer='he_uniform',
+        padding='same',
         strides=(2, 2),
-        padding='SAME',
-        kernel_initializer=tf.contrib.layers.xavier_initializer(),
-        kernel_regularizer=tf.contrib.layers.l2_regularizer(scale))
+        kernel_regularizer=l2(scale))(x)
 
 
 def reverse(a):
@@ -136,7 +136,6 @@ def create_tiramisu(nb_classes,
     x = up_path(added,
                 reverse(skips[:-1]),
                 reverse(nb_layers[:-1]), growth_rate, keep_prob, scale)
-    x_pred = conv(x, nb_classes, 1, scale, 0)
-    shape = x_pred.get_shape().as_list()
-    x = tf.reshape(x_pred, [-1, nb_classes])
-    return x, shape, x_pred
+    x = conv(x, nb_classes, 1, scale, 0)
+    x = Reshape((-1, nb_classes))(x)
+    return Activation('softmax')(x)
