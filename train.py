@@ -67,7 +67,7 @@ class segm_generator(object):
         idxs = next(self.idx_gen)
         items = (self.get_item(idx) for idx in idxs)
         xs, ys = zip(*items)
-        return np.stack(xs), np.stack(ys)
+        return np.stack(xs), np.stack(ys).reshape(len(ys), -1, self.ych)
 
 
 def load_array(fname):
@@ -105,7 +105,12 @@ def main():
     # Train the model
     img_input = Input(shape=(224, 224, 3))
     x = model.create_tiramisu(
-        33, img_input, nb_layers_per_block=4, keep_prob=0.2, scale=1e-4)
+        33,
+        img_input,
+        growth_rate=12,
+        nb_layers_per_block=4,
+        keep_prob=0.2,
+        scale=1e-4)
     md = Model(img_input, x)
     md.compile(
         loss='sparse_categorical_crossentropy',
