@@ -22,6 +22,6 @@ $ python train.py --batchsize 10 --epochs 1
 ## Prediction
 
 ```
-$ python predict.py
+$ python predict.py tiramisu.hdf5
 ```
 
