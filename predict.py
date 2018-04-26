@@ -49,7 +49,9 @@ def main():
     testset_labels = common.load_array(
         os.path.join(common.DATASET_ROOT, 'results', 'testset_labels.bc'))
     gen = common.segm_generator(testset_imgs, testset_labels, 1, train=False)
-    target_img, target_label = next(gen)
+    idx = np.random.randint(1, len(testset_imgs))
+    for i in range(idx):
+        target_img, target_label = next(gen)
 
     # Prediction
     pred = trained_model.predict(target_img)
