@@ -25,3 +25,6 @@ $ python train.py --batchsize 10 --epochs 1
 $ python predict.py <model_name.hdf5>
 ```
 
+## Results
+
+![Results](results/result.jpg)
