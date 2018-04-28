@@ -65,13 +65,14 @@ def main():
     target_shape = target_img.shape
     target_img = target_img.reshape(target_shape[1:])
     imm = [(target_img * 0.3 + 0.4), tl, pred_img_color]
-    title = ['originial', 'ground-truth', 'prediction']
+    title = ['original', 'ground-truth', 'prediction']
     plt.figure(figsize=(20, 15))
 
     for i in range(len(imm)):
         plt.subplot(1, 3, i + 1)
         plt.imshow(imm[i])
         plt.title(title[i], fontsize=30)
+        plt.imsave(os.path.join('results', title[i] + '.jpg'), imm[i])
     plt.show()
 
 
